@@ -292,7 +292,6 @@ if __name__ == "__main__":
     block = bytes.fromhex("0123456789ABCDEF")
 
     encrypted = encrypt_block(block, key)
-    print("Tes satu blok:", encrypted.hex().upper())
     assert encrypted.hex().upper() == "85E813540F0AB405"
     assert decrypt_block(encrypted, key) == block
 
@@ -305,3 +304,5 @@ if __name__ == "__main__":
     print("IV         :", iv.hex())
     print("Ciphertext :", ciphertext.hex())
     print("Hasil buka :", decrypted.decode("utf-8"))
+
+    ## 100.82.203.63

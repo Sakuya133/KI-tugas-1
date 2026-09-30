@@ -1,6 +1,6 @@
-import socket
-import threading
-from getpass import getpass
+importhreading
+from getpass import getpass socket
+import t
 
 from des import encrypt_message, decrypt_message
 
@@ -42,7 +42,6 @@ def receive_messages(sock, key):
         try:
             packet = receive_packet(sock)
 
-            # Format paket: 8 byte IV, sisanya ciphertext.
             iv = packet[:8]
             ciphertext = packet[8:]
 
@@ -94,7 +93,7 @@ def main():
     mode = input("[server/client]: ").strip().lower()
 
 
-    key_hex = getpass("Masukkan key DES (16 karakter hex): ").strip()
+    key_hex = getpass("key DES (16 karakter hex): ").strip()
 
     try:
         key = bytes.fromhex(key_hex)
@@ -103,7 +102,7 @@ def main():
             raise ValueError()
 
     except ValueError:
-        print("Key harus tepat 16 karakter hex (8 byte).")
+        print("Key 16 karakter hex (8 byte).")
         return
 
     if mode == "server":
@@ -119,15 +118,13 @@ def main():
             chat(sock, key)
 
     else:
-        server_ip = input("Masukkan IP laptop server: ").strip()
+        server_ip = input("IP pc server: ").strip()
 
         try:
             sock = socket.create_connection((server_ip, PORT), timeout=10)
             sock.settimeout(None)
             chat(sock, key)
 
-        except OSError as error:
-            print(f"Gagal terhubung: {error}")
 
 
 if __name__ == "__main__":
