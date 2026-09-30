@@ -1,6 +1,6 @@
-importhreading
-from getpass import getpass socket
-import t
+import threading
+import socket
+from getpass import getpass
 
 from des import encrypt_message, decrypt_message
 
@@ -16,7 +16,7 @@ def receive_exact(sock, size):
         chunk = sock.recv(size - len(data))
 
         if not chunk:
-            raise ConnectionError("Lawan chat disconect")
+            raise ConnectionError("Lawan chat disconnect.")
 
         data += chunk
 
@@ -32,7 +32,7 @@ def receive_packet(sock):
     packet_length = int.from_bytes(receive_exact(sock, 4), "big")
 
     if packet_length < 16 or packet_length > MAX_PACKET_SIZE:
-        raise ValueError("Ukuran paket tidak valid")
+        raise ValueError("Ukuran paket tidak valid.")
 
     return receive_exact(sock, packet_length)
 
@@ -46,12 +46,14 @@ def receive_messages(sock, key):
             ciphertext = packet[8:]
 
             message = decrypt_message(iv, ciphertext, key)
+
             print(f"\nLawan: {message.decode('utf-8')}")
             print("> ", end="", flush=True)
 
         except (ConnectionError, OSError):
             print("\nKoneksi terputus.")
             break
+
         except (ValueError, UnicodeDecodeError) as error:
             print(f"\nPesan tidak bisa dibaca: {error}")
             break
@@ -75,16 +77,20 @@ def chat(sock, key):
             if not message:
                 continue
 
-            iv, ciphertext = encrypt_message(message.encode("utf-8"), key)
+            iv, ciphertext = encrypt_message(
+                message.encode("utf-8"),
+                key
+            )
 
             send_packet(sock, iv + ciphertext)
-
             print(f"Terkirim (ciphertext): {ciphertext.hex()}")
 
     except (KeyboardInterrupt, EOFError):
         pass
+
     except (ConnectionError, OSError) as error:
         print(f"\nGagal mengirim: {error}")
+
     finally:
         sock.close()
 
@@ -92,8 +98,7 @@ def chat(sock, key):
 def main():
     mode = input("[server/client]: ").strip().lower()
 
-
-    key_hex = getpass("key DES (16 karakter hex): ").strip()
+    key_hex = getpass("Key DES (16 karakter hex): ").strip()
 
     try:
         key = bytes.fromhex(key_hex)
@@ -102,7 +107,7 @@ def main():
             raise ValueError()
 
     except ValueError:
-        print("Key 16 karakter hex (8 byte).")
+        print("Key harus 16 karakter hex (8 byte).")
         return
 
     if mode == "server":
@@ -113,18 +118,28 @@ def main():
 
             print(f"\nMenunggu client pada port {PORT}...")
             sock, address = server.accept()
-            print(f"Terhubung dengan {address[0]}:{address[1]}")
 
+            print(f"Terhubung dengan {address[0]}:{address[1]}")
             chat(sock, key)
 
-    else:
-        server_ip = input("IP pc server: ").strip()
+    elif mode == "client":
+        server_ip = input("IP PC server: ").strip()
 
         try:
-            sock = socket.create_connection((server_ip, PORT), timeout=10)
+            sock = socket.create_connection(
+                (server_ip, PORT),
+                timeout=10
+            )
             sock.settimeout(None)
+
+            print(f"Terhubung ke server {server_ip}:{PORT}")
             chat(sock, key)
 
+        except (OSError, socket.timeout) as error:
+            print(f"Gagal terhubung ke server: {error}")
+
+    else:
+        print("Mode harus 'server' atau 'client'.")
 
 
 if __name__ == "__main__":
