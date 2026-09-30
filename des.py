@@ -121,9 +121,6 @@ S_BOXES = [
 ]
 
 
-# =========================
-# Fungsi dasar
-# =========================
 
 def bytes_to_bits(data: bytes) -> str:
     return "".join(f"{byte:08b}" for byte in data)
@@ -152,9 +149,6 @@ def xor_bytes(a: bytes, b: bytes) -> bytes:
     return bytes(x ^ y for x, y in zip(a, b))
 
 
-# =========================
-# Key dan 16 ronde DES
-# =========================
 
 def generate_subkeys(key: bytes) -> list[str]:
     if len(key) != 8:
@@ -213,7 +207,7 @@ def process_block(block: bytes, subkeys: list[str]) -> bytes:
         left = new_left
         right = new_right
 
-    # Setelah ronde ke-16, kedua bagian ditukar.
+
     result_bits = permute(right + left, IP_INVERSE)
     return bits_to_bytes(result_bits)
 
@@ -228,9 +222,7 @@ def decrypt_block(block: bytes, key: bytes) -> bytes:
     return process_block(block, list(reversed(subkeys)))
 
 
-# =========================
-# Pesan panjang: padding + CBC
-# =========================
+
 
 def pad(data: bytes) -> bytes:
     padding_length = 8 - (len(data) % 8)
@@ -293,12 +285,9 @@ def decrypt_message(iv: bytes, ciphertext: bytes, key: bytes) -> bytes:
     return unpad(plaintext)
 
 
-# =========================
-# Coba jalankan file ini
-# =========================
+
 
 if __name__ == "__main__":
-    # Tes DES satu blok dengan contoh yang hasilnya sudah diketahui.
     key = bytes.fromhex("133457799BBCDFF1")
     block = bytes.fromhex("0123456789ABCDEF")
 
@@ -307,13 +296,12 @@ if __name__ == "__main__":
     assert encrypted.hex().upper() == "85E813540F0AB405"
     assert decrypt_block(encrypted, key) == block
 
-    # Tes pesan biasa yang panjangnya tidak harus 8 byte.
-    message = "Halo! Ini pesan dari Gusde 👋".encode("utf-8")
+    message = "suki gedangan".encode("utf-8")
 
     iv, ciphertext = encrypt_message(message, key)
     decrypted = decrypt_message(iv, ciphertext, key)
 
-    print("Pesan asli :", message.decode("utf-8"))
+    print("Plaintext  :", message.decode("utf-8"))
     print("IV         :", iv.hex())
     print("Ciphertext :", ciphertext.hex())
     print("Hasil buka :", decrypted.decode("utf-8"))

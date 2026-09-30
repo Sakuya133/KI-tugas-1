@@ -10,14 +10,13 @@ MAX_PACKET_SIZE = 1_000_000
 
 
 def receive_exact(sock, size):
-    """Baca tepat sejumlah byte yang diminta."""
     data = b""
 
     while len(data) < size:
         chunk = sock.recv(size - len(data))
 
         if not chunk:
-            raise ConnectionError("Lawan chat memutus koneksi")
+            raise ConnectionError("Lawan chat disconect")
 
         data += chunk
 
@@ -25,13 +24,11 @@ def receive_exact(sock, size):
 
 
 def send_packet(sock, data):
-    """Kirim panjang paket (4 byte), lalu isi paket."""
     packet_length = len(data).to_bytes(4, "big")
     sock.sendall(packet_length + data)
 
 
 def receive_packet(sock):
-    """Baca panjang paket dulu, baru baca isinya."""
     packet_length = int.from_bytes(receive_exact(sock, 4), "big")
 
     if packet_length < 16 or packet_length > MAX_PACKET_SIZE:
@@ -62,9 +59,6 @@ def receive_messages(sock, key):
 
 
 def chat(sock, key):
-    print("\nTerhubung! Ketik pesan lalu tekan Enter.")
-    print("Ketik /keluar untuk berhenti.\n")
-
     receiver = threading.Thread(
         target=receive_messages,
         args=(sock, key),
@@ -84,7 +78,6 @@ def chat(sock, key):
 
             iv, ciphertext = encrypt_message(message.encode("utf-8"), key)
 
-            # Hanya IV dan ciphertext yang dikirim, bukan plaintext atau key.
             send_packet(sock, iv + ciphertext)
 
             print(f"Terkirim (ciphertext): {ciphertext.hex()}")
@@ -95,16 +88,11 @@ def chat(sock, key):
         print(f"\nGagal mengirim: {error}")
     finally:
         sock.close()
-        print("\nChat selesai.")
 
 
 def main():
-    print("=== Chat DES Dua Arah ===")
-    mode = input("Pilih mode [server/client]: ").strip().lower()
+    mode = input("[server/client]: ").strip().lower()
 
-    if mode not in ("server", "client"):
-        print("Mode harus server atau client.")
-        return
 
     key_hex = getpass("Masukkan key DES (16 karakter hex): ").strip()
 
